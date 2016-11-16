@@ -46,6 +46,10 @@ Class WPSimpleNonce {
 		$name = filter_var($name,FILTER_SANITIZE_STRING);
 		$nonce = self::fetchNonce($name);
 		$returnValue = ($nonce===$value);
+
+		if ( $returnValue )
+			self::deleteNonce($name);
+		
 		return $returnValue;
 	}
 
@@ -66,8 +70,6 @@ Class WPSimpleNonce {
 	{
 		$returnValue = get_option(self::option_root.'_'.$name);
 		$nonceExpires = get_option(self::option_root.'_expires_'.$name);
-		
-		self::deleteNonce($name);
 		
 		if ($nonceExpires<time()) {
 			$returnValue = null;
