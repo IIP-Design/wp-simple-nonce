@@ -69,7 +69,7 @@ Class WPSimpleNonce {
 		
 		self::deleteNonce($name);
 		
-		if ($nonceExpires<time()+86400) {
+		if ($nonceExpires<time()) {
 			$returnValue = null;
 		}
 
@@ -103,7 +103,7 @@ Class WPSimpleNonce {
 		foreach ( $rows as $singleNonce ) 
 		{
 
-			if ($force or ($singleNonce->option_value>time()+86400)) {
+			if ($force or ($singleNonce->option_value<time())) {
 				$name = substr($singleNonce->option_name, strlen(self::option_root.'_expires_'));
 				$noncesDeleted +=  (self::deleteNonce($name)?1:0);
 			}
