@@ -1,0 +1,19 @@
+{
+    "name": "iip-design/wp-simple-nonce",
+    "type": "wordpress-plugin",
+    "description" : "A very simple NONCE for WordPress developers.",
+    "authors": [
+        {
+            "name": "Cal Evans",
+            "email": "cal@calevans.com"
+        },
+        {
+            "name": "Office of Design, U.S. Department of State",
+            "email": "design@america.gov"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+       "composer/installers": "~1.0"
+    }
+}
