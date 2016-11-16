@@ -3,7 +3,7 @@ Class WPSimpleNonce {
 
 	const option_root ='wp-snc';
 
-	public static function createNonce($name)
+	public static function createNonce($name, $duration=86400)
 	{
 
 		if (is_array($name)) {
@@ -18,7 +18,7 @@ Class WPSimpleNonce {
 		$name = substr($name, 0,17).'_'.$id;
 
 		$nonce = md5( wp_salt('nonce') . $name . microtime(true));
-		self::storeNonce($nonce,$name);
+		self::storeNonce($nonce,$name, $duration);
 		return ['name'=>$name,'value'=>$nonce];
 	}
 
@@ -50,14 +50,14 @@ Class WPSimpleNonce {
 	}
 
 
-	public static function  storeNonce($nonce, $name)
+	public static function  storeNonce($nonce, $name, $duration)
 	{
 		if (empty($name)) {
 			return false;
 		}
-
+		$expires = time() + $duration;
 		add_option(self::option_root.'_'.$name,$nonce);
-		add_option(self::option_root.'_expires_'.$name,time()+86400);
+		add_option(self::option_root.'_expires_'.$name,$expires);
 		return true;
 	}
 
