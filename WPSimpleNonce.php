@@ -1,13 +1,11 @@
 <?PHP
-Class WPSimpleNonce {
 
+Class WPSimpleNonce {
 	const option_root ='wp-snc';
 
-	public static function createNonce($name, $duration=86400)
-	{
-
-		if (is_array($name)) {
-			if (isset($name['name'])) {
+	public static function createNonce( $name, $duration=86400 ) {
+		if ( is_array( $name ) ) {
+			if ( isset($name['name'] ) ) {
 				$name = $name['name'];
 			} else {
 				$name = 'nonce';
@@ -15,17 +13,18 @@ Class WPSimpleNonce {
 		}
 
 		$id = self::generate_id();
-		$name = substr($name, 0,17).'_'.$id;
+		$name = substr( $name, 0, 17 ).'_'.$id;
+		$nonce = md5( wp_salt( 'nonce' ) . $name . microtime( true ) );
 
-		$nonce = md5( wp_salt('nonce') . $name . microtime(true));
-		self::storeNonce($nonce,$name, $duration);
+		self::storeNonce( $nonce, $name, $duration );
+    setcookie( 'wp-simple-nonce', $name, time() + $duration );
+
 		return ['name'=>$name,'value'=>$nonce];
 	}
 
 
 
-	public static function createNonceField($name='nonce')
-	{
+	public static function createNonceField($name='nonce') {
 		if (is_array($name)) {
 			if (isset($name['name'])) {
 				$name = $name['name'];
@@ -41,36 +40,39 @@ Class WPSimpleNonce {
 	}
 
 
-	public static function checkNonce( $name, $value ) 
-	{
+
+	public static function cmheckNonce( $name, $value ) {
 		$name = filter_var($name,FILTER_SANITIZE_STRING);
 		$nonce = self::fetchNonce($name);
 		$returnValue = ($nonce===$value);
 
 		if ( $returnValue )
 			self::deleteNonce($name);
-		
+
 		return $returnValue;
 	}
 
 
-	public static function  storeNonce($nonce, $name, $duration)
-	{
+
+	public static function  storeNonce($nonce, $name, $duration) {
 		if (empty($name)) {
 			return false;
 		}
+
 		$expires = time() + $duration;
+
 		add_option(self::option_root.'_'.$name,$nonce);
 		add_option(self::option_root.'_expires_'.$name,$expires);
+
 		return true;
 	}
 
 
-	protected static function  fetchNonce($name)
-	{
+
+	public static function fetchNonce($name) {
 		$returnValue = get_option(self::option_root.'_'.$name);
 		$nonceExpires = get_option(self::option_root.'_expires_'.$name);
-		
+
 		if ($nonceExpires<time()) {
 			$returnValue = null;
 		}
@@ -79,31 +81,31 @@ Class WPSimpleNonce {
 	}
 
 
-	public static function deleteNonce($name)
-	{
+
+	public static function deleteNonce($name) {
 		$optionDeleted = delete_option(self::option_root.'_'.$name);
 		$optionDeleted = $optionDeleted && delete_option(self::option_root.'_expires_'.$name);
 		return (bool)$optionDeleted;
 	}
 
 
-	public static function clearNonces($force=false)
-	{
+
+	public static function clearNonces($force=false) {
 		if ( defined('WP_SETUP_CONFIG') or defined('WP_INSTALLING')  ) {
 			return;
 		}
 
 		global $wpdb;
-		$sql = 'SELECT option_id, 
-		               option_name, 
-		               option_value 
-		          FROM ' . $wpdb->options . ' 
+
+		$sql = 'SELECT option_id,
+		               option_name,
+		               option_value
+		          FROM ' . $wpdb->options . '
 		         WHERE option_name like "'.self::option_root.'_expires_%"';
 		$rows = $wpdb->get_results($sql);
 		$noncesDeleted = 0;
 
-		foreach ( $rows as $singleNonce ) 
-		{
+		foreach ( $rows as $singleNonce ) {
 
 			if ($force or ($singleNonce->option_value<time())) {
 				$name = substr($singleNonce->option_name, strlen(self::option_root.'_expires_'));
@@ -112,8 +114,8 @@ Class WPSimpleNonce {
 		}
 
 		return (int)$noncesDeleted;
-
 	}
+
 
 
 	protected static function generate_id() {
@@ -121,7 +123,5 @@ Class WPSimpleNonce {
 		$hasher = new PasswordHash( 8, false );
 		return md5($hasher->get_random_bytes(100,false));
 	}
-
-
 }
 
