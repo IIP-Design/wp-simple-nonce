@@ -88,7 +88,7 @@ Class WPSimpleNonce {
 
 
 
-	public static function cmheckNonce( $name, $value ) {
+	public static function checkNonce( $name, $value ) {
 		$name = filter_var($name,FILTER_SANITIZE_STRING);
 		$nonce = self::fetchNonce($name);
 		$returnValue = ($nonce===$value);
