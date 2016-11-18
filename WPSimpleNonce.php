@@ -32,7 +32,7 @@ Class WPSimpleNonce {
         $nonce['value'] = WPSimpleNonce::fetchNonce( $cookie );
 
         // If there's a cookie, but the value's already been deleted from the db, get a new nonce
-        if ( $nonce['value'] === null ) {
+        if ( !$nonce['value'] ) {
           $nonce = WPSimpleNonce::createNonce('certificate', $duration, $set_cookie );
         }
 
