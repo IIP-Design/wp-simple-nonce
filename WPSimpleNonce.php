@@ -120,8 +120,8 @@ Class WPSimpleNonce {
 		$returnValue = get_option(self::option_root.'_'.$name);
 		$nonceExpires = get_option(self::option_root.'_expires_'.$name);
 
-		if ($nonceExpires<time()) {
-			$returnValue = null;
+		if ( $nonceExpires<time()  || !$returnValue ) {
+			$returnValue = false;
 		}
 
 		return $returnValue;
