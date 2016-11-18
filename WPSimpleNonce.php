@@ -3,7 +3,51 @@
 Class WPSimpleNonce {
 	const option_root ='wp-snc';
 
-	public static function createNonce( $name, $duration=86400 ) {
+  private static function get_cookie( $set_cookie ) {
+    $cookie_name = 'wp-simple-nonce';
+    $cookie = isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] : null;
+
+    // If $set_cookie is changed to false after it had once been true, delete the cookie
+    if ( $set_cookie === false && $cookie ) {
+
+      // Expire the cookie
+      setcookie( $cookie_name, $cookie, time()-1 );
+
+      // Reset $cookie variable to null so we don't return an expired $cookie
+      $cookie = null;
+    }
+
+    return $cookie;
+  }
+
+
+
+  public static function init( $name, $duration=86400, $set_cookie=false ) {
+    $nonce = array();
+    $cookie = self::get_cookie( $set_cookie );
+
+      // Check if there's a cookie already set
+      if ( $cookie ) {
+        $nonce['name'] = $cookie;
+        $nonce['value'] = WPSimpleNonce::fetchNonce( $cookie );
+
+        // If there's a cookie, but the value's already been deleted from the db, get a new nonce
+        if ( $nonce['value'] === null ) {
+          $nonce = WPSimpleNonce::createNonce('certificate', $duration, $set_cookie );
+        }
+
+        return $nonce;
+      }
+
+      // If there's no cookie, create a new nonce
+      $nonce = WPSimpleNonce::createNonce('certificate', $duration, $set_cookie );
+
+    return $nonce;
+  }
+
+
+
+	public static function createNonce( $name, $duration, $set_cookie ) {
 		if ( is_array( $name ) ) {
 			if ( isset($name['name'] ) ) {
 				$name = $name['name'];
@@ -17,7 +61,10 @@ Class WPSimpleNonce {
 		$nonce = md5( wp_salt( 'nonce' ) . $name . microtime( true ) );
 
 		self::storeNonce( $nonce, $name, $duration );
-    setcookie( 'wp-simple-nonce', $name, time() + $duration );
+
+    if ($set_cookie === true) {
+      setcookie( 'wp-simple-nonce', $name, time() + $duration );
+    }
 
 		return ['name'=>$name,'value'=>$nonce];
 	}
